@@ -26,14 +26,16 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode: themeMode,
       debugShowCheckedModeBanner: false,
-      home: SplashScreen(
-        onComplete: () {
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (context) => const TestWellbeingScreen(),
-            ),
-          );
-        },
+      home: Builder(
+        builder: (context) => SplashScreen(
+          onComplete: () {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => const TestWellbeingScreen(),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
