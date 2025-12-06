@@ -150,21 +150,22 @@ class SettingsScreen extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
             SegmentedButton<ThemeMode>(
-              segments: const [
+              segments: [
                 ButtonSegment(
                   value: ThemeMode.system,
-                  label: Text('System'),
-                  icon: Icon(Icons.auto_awesome),
+                  // Wrap label in a FittedBox so the text scales to fit available space
+                  label: const FittedBox(child: Text('System')),
+                  icon: const Icon(Icons.auto_awesome, size: 18),
                 ),
                 ButtonSegment(
                   value: ThemeMode.light,
-                  label: Text('Light'),
-                  icon: Icon(Icons.wb_sunny_outlined),
+                  label: const FittedBox(child: Text('Light')),
+                  icon: const Icon(Icons.wb_sunny_outlined, size: 18),
                 ),
                 ButtonSegment(
                   value: ThemeMode.dark,
-                  label: Text('Dark'),
-                  icon: Icon(Icons.nightlight_round),
+                  label: const FittedBox(child: Text('Dark')),
+                  icon: const Icon(Icons.nightlight_round, size: 18),
                 ),
               ],
               selected: {themeMode},
