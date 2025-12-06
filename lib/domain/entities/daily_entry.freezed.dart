@@ -24,6 +24,7 @@ mixin _$DailyEntry {
   String get id => throw _privateConstructorUsedError;
   DateTime get date => throw _privateConstructorUsedError;
   int get moodScore => throw _privateConstructorUsedError; // 1-10
+  int get stressLevel => throw _privateConstructorUsedError; // 1-10
   String? get note => throw _privateConstructorUsedError;
   bool get aiGenerated => throw _privateConstructorUsedError;
   String? get aiSummary => throw _privateConstructorUsedError;
@@ -50,6 +51,7 @@ abstract class $DailyEntryCopyWith<$Res> {
     String id,
     DateTime date,
     int moodScore,
+    int stressLevel,
     String? note,
     bool aiGenerated,
     String? aiSummary,
@@ -75,6 +77,7 @@ class _$DailyEntryCopyWithImpl<$Res, $Val extends DailyEntry>
     Object? id = null,
     Object? date = null,
     Object? moodScore = null,
+    Object? stressLevel = null,
     Object? note = freezed,
     Object? aiGenerated = null,
     Object? aiSummary = freezed,
@@ -93,6 +96,10 @@ class _$DailyEntryCopyWithImpl<$Res, $Val extends DailyEntry>
             moodScore: null == moodScore
                 ? _value.moodScore
                 : moodScore // ignore: cast_nullable_to_non_nullable
+                      as int,
+            stressLevel: null == stressLevel
+                ? _value.stressLevel
+                : stressLevel // ignore: cast_nullable_to_non_nullable
                       as int,
             note: freezed == note
                 ? _value.note
@@ -129,6 +136,7 @@ abstract class _$$DailyEntryImplCopyWith<$Res>
     String id,
     DateTime date,
     int moodScore,
+    int stressLevel,
     String? note,
     bool aiGenerated,
     String? aiSummary,
@@ -153,6 +161,7 @@ class __$$DailyEntryImplCopyWithImpl<$Res>
     Object? id = null,
     Object? date = null,
     Object? moodScore = null,
+    Object? stressLevel = null,
     Object? note = freezed,
     Object? aiGenerated = null,
     Object? aiSummary = freezed,
@@ -171,6 +180,10 @@ class __$$DailyEntryImplCopyWithImpl<$Res>
         moodScore: null == moodScore
             ? _value.moodScore
             : moodScore // ignore: cast_nullable_to_non_nullable
+                  as int,
+        stressLevel: null == stressLevel
+            ? _value.stressLevel
+            : stressLevel // ignore: cast_nullable_to_non_nullable
                   as int,
         note: freezed == note
             ? _value.note
@@ -200,6 +213,7 @@ class _$DailyEntryImpl implements _DailyEntry {
     required this.id,
     required this.date,
     required this.moodScore,
+    this.stressLevel = 0,
     this.note,
     this.aiGenerated = false,
     this.aiSummary,
@@ -215,6 +229,10 @@ class _$DailyEntryImpl implements _DailyEntry {
   final DateTime date;
   @override
   final int moodScore;
+  // 1-10
+  @override
+  @JsonKey()
+  final int stressLevel;
   // 1-10
   @override
   final String? note;
@@ -234,7 +252,7 @@ class _$DailyEntryImpl implements _DailyEntry {
 
   @override
   String toString() {
-    return 'DailyEntry(id: $id, date: $date, moodScore: $moodScore, note: $note, aiGenerated: $aiGenerated, aiSummary: $aiSummary, tags: $tags)';
+    return 'DailyEntry(id: $id, date: $date, moodScore: $moodScore, stressLevel: $stressLevel, note: $note, aiGenerated: $aiGenerated, aiSummary: $aiSummary, tags: $tags)';
   }
 
   @override
@@ -246,6 +264,8 @@ class _$DailyEntryImpl implements _DailyEntry {
             (identical(other.date, date) || other.date == date) &&
             (identical(other.moodScore, moodScore) ||
                 other.moodScore == moodScore) &&
+            (identical(other.stressLevel, stressLevel) ||
+                other.stressLevel == stressLevel) &&
             (identical(other.note, note) || other.note == note) &&
             (identical(other.aiGenerated, aiGenerated) ||
                 other.aiGenerated == aiGenerated) &&
@@ -261,6 +281,7 @@ class _$DailyEntryImpl implements _DailyEntry {
     id,
     date,
     moodScore,
+    stressLevel,
     note,
     aiGenerated,
     aiSummary,
@@ -286,6 +307,7 @@ abstract class _DailyEntry implements DailyEntry {
     required final String id,
     required final DateTime date,
     required final int moodScore,
+    final int stressLevel,
     final String? note,
     final bool aiGenerated,
     final String? aiSummary,
@@ -301,6 +323,8 @@ abstract class _DailyEntry implements DailyEntry {
   DateTime get date;
   @override
   int get moodScore; // 1-10
+  @override
+  int get stressLevel; // 1-10
   @override
   String? get note;
   @override

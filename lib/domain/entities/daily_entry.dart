@@ -9,11 +9,13 @@ class DailyEntry with _$DailyEntry {
     required String id,
     required DateTime date,
     required int moodScore, // 1-10
+    @Default(0) int stressLevel, // 1-10
     String? note,
     @Default(false) bool aiGenerated,
     String? aiSummary,
     @Default([]) List<String> tags,
   }) = _DailyEntry;
 
-  factory DailyEntry.fromJson(Map<String, dynamic> json) => _$DailyEntryFromJson(json);
+  factory DailyEntry.fromJson(Map<String, dynamic> json) =>
+      _$DailyEntryFromJson(json);
 }
