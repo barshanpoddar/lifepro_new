@@ -36,7 +36,8 @@ class AppColors {
     0xFFF8F6FB,
   ); // subtle pink/cream tint for cards
   static const Color darkSurface = Color(0xFF0F1720);
-  static const Color scaffoldDark = darkSurface;
+  // Use a slightly warmer deep-teal slate for the dark scaffold
+  static const Color scaffoldDark = Color(0xFF071B1B);
 }
 
 class AppTheme {
@@ -66,15 +67,17 @@ class AppTheme {
   static final ThemeData darkTheme = ThemeData(
     useMaterial3: true,
     brightness: Brightness.dark,
+    // For dark mode, prefer a deeper teal accent so pastel accents still pop
     colorScheme: ColorScheme.fromSeed(
-      seedColor: AppColors.primary,
+      seedColor: AppColors.deepTeal,
       brightness: Brightness.dark,
       surface: AppColors.darkSurface,
       secondary: AppColors.secondary,
     ),
     textTheme: GoogleFonts.outfitTextTheme(ThemeData.dark().textTheme),
+    // Slightly lighter than scaffold so cards are distinguishable
     scaffoldBackgroundColor: AppColors.scaffoldDark,
-    cardColor: Colors.grey.shade900,
+    cardColor: const Color(0xFF0E2A2A),
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
         backgroundColor: AppColors.primary,
