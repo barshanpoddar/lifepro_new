@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:lifepro_new/presentation/screens/settings_screen.dart';
 import 'home_controller.dart';
 import 'home_state.dart';
 
@@ -29,7 +30,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           IconButton(
             icon: const Icon(Icons.settings_outlined),
             onPressed: () {
-              // TODO: Open Settings
+              final route = MaterialPageRoute(
+                builder: (_) => const SettingsScreen(),
+              );
+              Navigator.of(context).push(route);
             },
           ),
         ],
