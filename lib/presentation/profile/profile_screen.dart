@@ -8,11 +8,58 @@ import 'package:intl/intl.dart';
 import 'package:lifepro_new/domain/entities/user_profile.dart';
 import 'package:lifepro_new/presentation/profile/profile_controller.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  late final TextEditingController _fullNameController;
+  late final TextEditingController _emailController;
+  late final TextEditingController _phoneController;
+
+  @override
+  void initState() {
+    super.initState();
+    final profileState = ref.read(profileControllerProvider);
+
+    _fullNameController = TextEditingController(text: profileState.userProfile.fullName);
+    _emailController = TextEditingController(text: profileState.userProfile.email);
+    _phoneController = TextEditingController(text: profileState.userProfile.phoneWithCountryCode);
+
+    // Listen to controller changes to update state
+    _fullNameController.addListener(() => _updateFullName());
+    _emailController.addListener(() => _updateEmail());
+    _phoneController.addListener(() => _updatePhone());
+  }
+
+  void _updateFullName() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateFullName(_fullNameController.text);
+  }
+
+  void _updateEmail() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateEmail(_emailController.text);
+  }
+
+  void _updatePhone() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updatePhone(_phoneController.text);
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _emailController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final profileState = ref.watch(profileControllerProvider);
     final profileController = ref.read(profileControllerProvider.notifier);
 
@@ -55,30 +102,27 @@ class ProfileScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 _ProfileField(
+                  controller: _fullNameController,
                   label: 'Full Name',
                   icon: Icons.person,
-                  controller: TextEditingController(text: profileState.userProfile.fullName),
                   errorText: profileState.fieldErrors?['fullName'],
                   hint: 'Enter your full name',
-                  onChanged: profileController.updateFullName,
                   keyboardType: TextInputType.name,
                 ),
                 _ProfileField(
+                  controller: _emailController,
                   label: 'Email',
                   icon: Icons.email,
-                  controller: TextEditingController(text: profileState.userProfile.email),
                   errorText: profileState.fieldErrors?['email'],
                   hint: 'Enter your email',
-                  onChanged: profileController.updateEmail,
                   keyboardType: TextInputType.emailAddress,
                 ),
                 _ProfileField(
+                  controller: _phoneController,
                   label: 'Phone Number',
                   icon: Icons.phone,
-                  controller: TextEditingController(text: profileState.userProfile.phoneWithCountryCode),
                   errorText: profileState.fieldErrors?['phone'],
                   hint: '+91 9876543210',
-                  onChanged: profileController.updatePhone,
                   keyboardType: TextInputType.phone,
                 ),
                 const SizedBox(height: 32),
@@ -260,30 +304,23 @@ class _ProfilePictureSection extends StatelessWidget {
   }
 }
 
-class _ProfileField extends StatefulWidget {
+class _ProfileField extends StatelessWidget {
   final String label;
   final IconData icon;
   final TextEditingController controller;
   final String? errorText;
   final String hint;
-  final Function(String) onChanged;
   final TextInputType keyboardType;
 
   const _ProfileField({
+    required this.controller,
     required this.label,
     required this.icon,
-    required this.controller,
     this.errorText,
     required this.hint,
-    required this.onChanged,
     this.keyboardType = TextInputType.text,
   });
 
-  @override
-  _ProfileFieldState createState() => _ProfileFieldState();
-}
-
-class _ProfileFieldState extends State<_ProfileField> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -291,25 +328,22 @@ class _ProfileFieldState extends State<_ProfileField> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
-        controller: widget.controller,
+        controller: controller,
         decoration: InputDecoration(
-          labelText: widget.label,
-          hintText: widget.hint,
-          errorText: widget.errorText,
-          prefixIcon: Icon(widget.icon),
+          labelText: label,
+          hintText: hint,
+          errorText: errorText,
+          prefixIcon: Icon(icon),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
           ),
           filled: true,
           fillColor: theme.colorScheme.surfaceContainerHighest,
         ),
-        keyboardType: widget.keyboardType,
-        onChanged: widget.onChanged,
+        keyboardType: keyboardType,
       ),
     );
   }
-
-
 }
 
 class _DatePickerField extends StatelessWidget {
