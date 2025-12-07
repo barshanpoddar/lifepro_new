@@ -1,11 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'home_controller.dart';
-import 'package:lifepro_new/presentation/screens/settings_screen.dart';
 import 'package:lifepro_new/presentation/screens/health_monitoring_screen.dart';
-import 'package:lifepro_new/presentation/screens/reports_screen.dart';
 import 'package:lifepro_new/presentation/screens/care_screen.dart';
 import 'package:lifepro_new/presentation/screens/notifications_screen.dart';
+import 'package:lifepro_new/presentation/profile/profile_screen.dart';
 import 'home_state.dart';
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -97,7 +96,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       case 2:
         return const CareScreen();
       case 3:
-        return _buildProfileScreen(context);
+        return const ProfileScreen();
       default:
         return homeContent;
     }
@@ -631,95 +630,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     );
   }
 
-  Widget _buildProfileScreen(BuildContext context) {
-    final theme = Theme.of(context);
-    return SafeArea(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            const SizedBox(height: 8),
-            Center(
-              child: CircleAvatar(
-                radius: 40,
-                backgroundColor: theme.colorScheme.primaryContainer,
-                child: Icon(
-                  Icons.person,
-                  size: 40,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Center(
-              child: Text(
-                'Your Name',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-            const SizedBox(height: 8),
-            Center(
-              child: Text(
-                'View and edit your profile',
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
 
-            // Reports Section
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'My Reports',
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(builder: (_) => const ReportsScreen()),
-                    );
-                  },
-                  child: const Text('View All'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            const ReportsScreen(),
-            const SizedBox(height: 24),
-
-            // Settings
-            Text(
-              'Settings',
-              style: theme.textTheme.titleMedium?.copyWith(
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Card(
-              child: ListTile(
-                leading: const Icon(Icons.settings_outlined),
-                title: const Text('App Settings'),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(builder: (_) => const SettingsScreen()),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   Widget _buildEmergencyButton(BuildContext context) {
     return Center(
