@@ -1,6 +1,5 @@
 import 'dart:convert';
 
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:intl/intl.dart';
@@ -34,7 +33,7 @@ class ProfileController extends StateNotifier<ProfileState> {
         state = state.copyWith(userProfile: mockProfile);
       }
     } catch (e) {
-      print('Error loading profile: $e');
+      // print('Error loading profile: $e');
       // Fallback
       final mockProfile = UserProfile(
         fullName: '',
