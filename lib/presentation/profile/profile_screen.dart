@@ -48,19 +48,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profileState = ref.watch(profileControllerProvider);
     final profileController = ref.read(profileControllerProvider.notifier);
 
-    // Update controllers when profile loads or changes externally
-    if (_fullNameController.text != profileState.userProfile.fullName) {
-      _fullNameController.text = profileState.userProfile.fullName ?? '';
-    }
-    if (_emailController.text != profileState.userProfile.email) {
-      _emailController.text = profileState.userProfile.email ?? '';
-    }
-    if (_phoneController.text !=
-        profileState.userProfile.phoneWithCountryCode) {
-      _phoneController.text =
-          profileState.userProfile.phoneWithCountryCode ?? '';
-    }
-
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final textTheme = theme.textTheme;

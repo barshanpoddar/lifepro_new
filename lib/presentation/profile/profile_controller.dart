@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -11,6 +12,16 @@ import 'package:path_provider/path_provider.dart';
 
 class ProfileController extends StateNotifier<ProfileState> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
+  // Debounce timers for text field updates
+  Timer? _fullNameTimer;
+  Timer? _emailTimer;
+  Timer? _phoneTimer;
+
+  // Pending values for debounced updates
+  String? _pendingFullName;
+  String? _pendingEmail;
+  String? _pendingPhone;
 
   ProfileController() : super(const ProfileState()) {
     loadProfile();
@@ -52,31 +63,65 @@ class ProfileController extends StateNotifier<ProfileState> {
   }
 
   void updateFullName(String fullName) {
-    final newProfile = state.userProfile.copyWith(fullName: fullName);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('fullName');
+    _pendingFullName = fullName;
+    _fullNameTimer?.cancel();
+    _fullNameTimer = Timer(const Duration(milliseconds: 500), () {
+      if (_pendingFullName != null) {
+        final newProfile = state.userProfile.copyWith(
+          fullName: _pendingFullName!,
+        );
+        state = state.copyWith(userProfile: newProfile);
+        _validateField('fullName');
+        _pendingFullName = null;
+      }
+    });
   }
 
   void updateEmail(String email) {
-    final newProfile = state.userProfile.copyWith(email: email, emailVerified: false);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('email');
+    _pendingEmail = email;
+    _emailTimer?.cancel();
+    _emailTimer = Timer(const Duration(milliseconds: 500), () {
+      if (_pendingEmail != null) {
+        final newProfile = state.userProfile.copyWith(
+          email: _pendingEmail!,
+          emailVerified: false,
+        );
+        state = state.copyWith(userProfile: newProfile);
+        _validateField('email');
+        _pendingEmail = null;
+      }
+    });
   }
 
   void updatePhone(String phone) {
-    final newProfile = state.userProfile.copyWith(phoneWithCountryCode: phone, phoneVerified: false);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('phone');
-    // Trigger OTP if valid phone
-    if (_isValidPhone(phone) && !newProfile.phoneVerified) {
-      state = state.copyWith(showOtpDialog: true);
-    }
+    _pendingPhone = phone;
+    _phoneTimer?.cancel();
+    _phoneTimer = Timer(const Duration(milliseconds: 500), () {
+      if (_pendingPhone != null) {
+        final newProfile = state.userProfile.copyWith(
+          phoneWithCountryCode: _pendingPhone!,
+          phoneVerified: false,
+        );
+        state = state.copyWith(userProfile: newProfile);
+        _validateField('phone');
+        // Trigger OTP if valid phone
+        if (_isValidPhone(_pendingPhone!) && !newProfile.phoneVerified) {
+          state = state.copyWith(showOtpDialog: true);
+        }
+        _pendingPhone = null;
+      }
+    });
   }
 
   void updateDob(DateTime dob) {
     final now = DateTime.now();
     if (dob.isAfter(now)) return;
-    final age = now.year - dob.year - (now.month > dob.month || (now.month == dob.month && now.day >= dob.day) ? 0 : 1);
+    final age =
+        now.year -
+        dob.year -
+        (now.month > dob.month || (now.month == dob.month && now.day >= dob.day)
+            ? 0
+            : 1);
     if (age < 0) return;
     final newProfile = state.userProfile.copyWith(dob: dob);
     state = state.copyWith(userProfile: newProfile);
@@ -90,7 +135,9 @@ class ProfileController extends StateNotifier<ProfileState> {
   }
 
   void updateProfilePicture(String? profilePictureUrl) {
-    final newProfile = state.userProfile.copyWith(profilePictureUrl: profilePictureUrl);
+    final newProfile = state.userProfile.copyWith(
+      profilePictureUrl: profilePictureUrl,
+    );
     state = state.copyWith(userProfile: newProfile);
   }
 
@@ -141,7 +188,9 @@ class ProfileController extends StateNotifier<ProfileState> {
         // In production, you might want to upload to cloud storage
         final directory = await getApplicationDocumentsDirectory();
         final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final savedImage = await File(pickedFile.path).copy('${directory.path}/$fileName');
+        final savedImage = await File(
+          pickedFile.path,
+        ).copy('${directory.path}/$fileName');
 
         updateProfilePicture(savedImage.path);
       }
@@ -156,10 +205,17 @@ class ProfileController extends StateNotifier<ProfileState> {
       case 'fullName':
         if (state.userProfile.fullName.isEmpty) {
           errors['fullName'] = 'Please enter your full name.';
-        } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(state.userProfile.fullName)) {
+        } else if (!RegExp(
+          r'^[a-zA-Z\s]+$',
+        ).hasMatch(state.userProfile.fullName)) {
           errors['fullName'] = 'Full name must not include special characters.';
-        } else if (state.userProfile.fullName.split(' ').where((w) => w.isNotEmpty).length < 2) {
-          errors['fullName'] = 'Please enter full name with at least first and last name.';
+        } else if (state.userProfile.fullName
+                .split(' ')
+                .where((w) => w.isNotEmpty)
+                .length <
+            2) {
+          errors['fullName'] =
+              'Please enter full name with at least first and last name.';
         } else {
           errors.remove('fullName');
         }
@@ -167,7 +223,9 @@ class ProfileController extends StateNotifier<ProfileState> {
       case 'email':
         if (state.userProfile.email.isEmpty) {
           errors['email'] = 'Please enter your email.';
-        } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+').hasMatch(state.userProfile.email)) {
+        } else if (!RegExp(
+          r'^[^@]+@[^@]+\.[^@]+',
+        ).hasMatch(state.userProfile.email)) {
           errors['email'] = 'Please enter a valid email address.';
         } else {
           errors.remove('email');
@@ -176,8 +234,11 @@ class ProfileController extends StateNotifier<ProfileState> {
       case 'phone':
         if (state.userProfile.phoneWithCountryCode.isEmpty) {
           errors['phone'] = 'Please enter your phone number with country code.';
-        } else if (!RegExp(r'^\+[0-9]{1,4}\s[0-9]{6,14}$').hasMatch(state.userProfile.phoneWithCountryCode)) {
-          errors['phone'] = 'Please enter a valid phone number with country code (e.g., +91 9876543210).';
+        } else if (!RegExp(
+          r'^\+[0-9]{1,4}\s[0-9]{6,14}$',
+        ).hasMatch(state.userProfile.phoneWithCountryCode)) {
+          errors['phone'] =
+              'Please enter a valid phone number with country code (e.g., +91 9876543210).';
         } else {
           errors.remove('phone');
         }
@@ -222,7 +283,8 @@ class ProfileController extends StateNotifier<ProfileState> {
   int _calculateAge(DateTime dob) {
     final now = DateTime.now();
     int age = now.year - dob.year;
-    if (now.month < dob.month || (now.month == dob.month && now.day < dob.day)) {
+    if (now.month < dob.month ||
+        (now.month == dob.month && now.day < dob.day)) {
       age--;
     }
     return age;
@@ -230,18 +292,23 @@ class ProfileController extends StateNotifier<ProfileState> {
 
   bool get isFormValid {
     return (state.fieldErrors?.isEmpty ?? true) &&
-           state.userProfile.fullName.isNotEmpty &&
-           state.userProfile.email.isNotEmpty &&
-           state.userProfile.phoneWithCountryCode.isNotEmpty &&
-           state.userProfile.dob != null &&
-           state.userProfile.gender != null;
+        state.userProfile.fullName.isNotEmpty &&
+        state.userProfile.email.isNotEmpty &&
+        state.userProfile.phoneWithCountryCode.isNotEmpty &&
+        state.userProfile.dob != null &&
+        state.userProfile.gender != null;
   }
 
   void verifyOtp(String otp) {
     // Mock OTP verification
-    if (otp == '123456') { // dummy
+    if (otp == '123456') {
+      // dummy
       final newProfile = state.userProfile.copyWith(phoneVerified: true);
-      state = state.copyWith(userProfile: newProfile, showOtpDialog: false, otpInput: null);
+      state = state.copyWith(
+        userProfile: newProfile,
+        showOtpDialog: false,
+        otpInput: null,
+      );
     } else {
       state = state.copyWith(errorMessage: 'Invalid OTP. Try 123456 for demo.');
     }
@@ -250,7 +317,10 @@ class ProfileController extends StateNotifier<ProfileState> {
   void verifyEmail() {
     // Mock email verification
     final newProfile = state.userProfile.copyWith(emailVerified: true);
-    state = state.copyWith(userProfile: newProfile, showEmailVerificationDialog: false);
+    state = state.copyWith(
+      userProfile: newProfile,
+      showEmailVerificationDialog: false,
+    );
   }
 
   Future<void> saveProfile() async {
@@ -262,7 +332,9 @@ class ProfileController extends StateNotifier<ProfileState> {
       final sanitizedProfile = state.userProfile.copyWith(
         fullName: _sanitizeText(state.userProfile.fullName),
         email: _sanitizeEmail(state.userProfile.email),
-        phoneWithCountryCode: _sanitizePhone(state.userProfile.phoneWithCountryCode),
+        phoneWithCountryCode: _sanitizePhone(
+          state.userProfile.phoneWithCountryCode,
+        ),
       );
 
       // Save to secure storage
@@ -276,7 +348,10 @@ class ProfileController extends StateNotifier<ProfileState> {
 
       // Show email verification if not verified
       if (!sanitizedProfile.emailVerified) {
-        state = state.copyWith(showEmailVerificationDialog: true, isSaving: false);
+        state = state.copyWith(
+          showEmailVerificationDialog: true,
+          isSaving: false,
+        );
       } else {
         state = state.copyWith(isSaving: false, profileSaved: true);
         Future.delayed(const Duration(seconds: 2), () {
@@ -327,8 +402,17 @@ class ProfileController extends StateNotifier<ProfileState> {
     if (state.userProfile.dob == null) return '';
     return DateFormat('yyyy-MM-dd').format(state.userProfile.dob!);
   }
+
+  @override
+  void dispose() {
+    _fullNameTimer?.cancel();
+    _emailTimer?.cancel();
+    _phoneTimer?.cancel();
+    super.dispose();
+  }
 }
 
-final profileControllerProvider = StateNotifierProvider<ProfileController, ProfileState>(
-  (ref) => ProfileController(),
-);
+final profileControllerProvider =
+    StateNotifierProvider<ProfileController, ProfileState>(
+      (ref) => ProfileController(),
+    );
