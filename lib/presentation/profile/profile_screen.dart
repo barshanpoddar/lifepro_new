@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lifepro_new/domain/entities/user_profile.dart';
 import 'package:lifepro_new/presentation/profile/profile_controller.dart';
+import 'package:lifepro_new/presentation/screens/settings_screen.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -365,23 +366,31 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _navigateToPersonalDetails(BuildContext context) {
-    // For now, just scroll to top or show a dialog
+    // Scroll to the top to show the profile form
+    final scrollController = ScrollController();
+    if (scrollController.hasClients) {
+      scrollController.animateTo(
+        0.0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeInOut,
+      );
+    }
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Personal Details - Feature Coming Soon')),
+      const SnackBar(content: Text('Personal Details - Edit your profile above')),
     );
   }
 
   void _navigateToAddMember(BuildContext context) {
-    // For now, show a dialog to add member
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Add Member - Feature Coming Soon')),
-    );
+    // Navigate to add emergency contact screen or show dialog
+    _showAddEmergencyContactDialog(context);
   }
 
   void _navigateToSettings(BuildContext context) {
-    // Navigate to settings screen if exists
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Settings - Feature Coming Soon')),
+    // Navigate to settings screen
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => const SettingsScreen(),
+      ),
     );
   }
 
@@ -451,6 +460,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: const Text('Logout'),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showAddEmergencyContactDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return _AddEmergencyContactDialog(
+          onAddContact: (name, phone, relation) {
+            ref.read(profileControllerProvider.notifier).addEmergencyContact(
+              name,
+              phone,
+              relation,
+            );
+          },
         );
       },
     );
@@ -834,5 +860,116 @@ class _ProfileOptionTile extends StatelessWidget {
         onTap: onTap,
       ),
     );
+  }
+}
+
+typedef _AddContactCallback = void Function(String name, String phone, String relation);
+
+class _AddEmergencyContactDialog extends StatefulWidget {
+  final _AddContactCallback onAddContact;
+
+  const _AddEmergencyContactDialog({required this.onAddContact});
+
+  @override
+  State<_AddEmergencyContactDialog> createState() =>
+      _AddEmergencyContactDialogState();
+}
+
+class _AddEmergencyContactDialogState extends State<_AddEmergencyContactDialog> {
+  final TextEditingController _nameController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _relationController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    return Dialog(
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              'Add Emergency Contact',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Name',
+                hintText: 'Enter contact name',
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _phoneController,
+              decoration: const InputDecoration(
+                labelText: 'Phone',
+                hintText: 'Enter phone number',
+              ),
+              keyboardType: TextInputType.phone,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _relationController,
+              decoration: const InputDecoration(
+                labelText: 'Relation',
+                hintText: 'e.g., Father, Mother, Spouse',
+              ),
+            ),
+            const SizedBox(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    if (_nameController.text.isEmpty ||
+                        _phoneController.text.isEmpty ||
+                        _relationController.text.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('Please fill all fields'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                      return;
+                    }
+
+                    // Save the emergency contact
+                    widget.onAddContact(
+                      _nameController.text,
+                      _phoneController.text,
+                      _relationController.text,
+                    );
+
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Emergency contact added'),
+                      ),
+                    );
+                  },
+                  child: const Text('Add Contact'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    _relationController.dispose();
+    super.dispose();
   }
 }
