@@ -156,6 +156,29 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   onChanged: profileController.updateGender,
                   errorText: profileState.fieldErrors?['gender'],
                 ),
+                const SizedBox(height: 32),
+
+                // Emergency Contacts Section
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Emergency Contacts",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _EmergencyContactsSection(profileController: profileController),
+                const SizedBox(height: 16),
+                // Auto-share location toggle
+                SwitchListTile(
+                  title: const Text('Auto-share location in SOS alerts'),
+                  subtitle: const Text('Include GPS location when sending emergency alerts'),
+                  value: profileState.userProfile.autoShareLocation,
+                  onChanged: profileController.updateAutoShareLocation,
+                ),
                 const SizedBox(height: 40),
 
                 // Save Button
@@ -313,7 +336,6 @@ class _ProfileField extends StatelessWidget {
   final String? errorText;
   final String hint;
   final TextInputType keyboardType;
-  final int? maxLines;
 
   const _ProfileField({
     required this.controller,
@@ -322,7 +344,6 @@ class _ProfileField extends StatelessWidget {
     this.errorText,
     required this.hint,
     this.keyboardType = TextInputType.text,
-    this.maxLines,
   });
 
   @override
@@ -345,7 +366,6 @@ class _ProfileField extends StatelessWidget {
           fillColor: theme.colorScheme.surfaceContainerHighest,
         ),
         keyboardType: keyboardType,
-        maxLines: maxLines,
       ),
     );
   }
@@ -596,6 +616,103 @@ class _EmailVerificationDialog extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class _EmergencyContactsSection extends ConsumerWidget {
+  final ProfileController profileController;
+
+  const _EmergencyContactsSection({required this.profileController});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final profileState = ref.watch(profileControllerProvider);
+
+    return Column(
+      children: [
+        // List of contacts
+        if (profileState.userProfile.emergencyContacts.isNotEmpty)
+          ...profileState.userProfile.emergencyContacts.asMap().entries.map((entry) {
+            final index = entry.key;
+            final contact = entry.value;
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: const CircleAvatar(child: Icon(Icons.contact_phone)),
+                title: Text('${contact.name} (${contact.relation})'),
+                subtitle: Text(contact.phone),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => profileController.removeEmergencyContact(index),
+                ),
+              ),
+            );
+          })
+        else
+          const Padding(
+            padding: EdgeInsets.all(16),
+            child: Text('No emergency contacts added yet.'),
+          ),
+
+        // Add new contact button
+        OutlinedButton.icon(
+          onPressed: () => _showAddContactDialog(context, profileController),
+          icon: const Icon(Icons.add),
+          label: const Text('Add Emergency Contact'),
+        ),
+      ],
+    );
+  }
+
+  void _showAddContactDialog(BuildContext context, ProfileController controller) {
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final relationController = TextEditingController();
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Add Emergency Contact'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: nameController,
+                decoration: const InputDecoration(labelText: 'Name'),
+              ),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(labelText: 'Phone Number'),
+                keyboardType: TextInputType.phone,
+              ),
+              TextField(
+                controller: relationController,
+                decoration: const InputDecoration(labelText: 'Relation (e.g., Family, Friend)'),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final name = nameController.text.trim();
+                final phone = phoneController.text.trim();
+                final relation = relationController.text.trim();
+                if (name.isNotEmpty && phone.isNotEmpty && relation.isNotEmpty) {
+                  controller.addEmergencyContact(name, phone, relation);
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('Add'),
+            ),
+          ],
+        );
+      },
     );
   }
 }
