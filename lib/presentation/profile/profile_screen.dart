@@ -21,6 +21,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late final TextEditingController _fullNameController;
   late final TextEditingController _emailController;
   late final TextEditingController _phoneController;
+  late final TextEditingController _nicknameController;
+  late final TextEditingController _bioController;
+  late final TextEditingController _occupationController;
+  late final TextEditingController _countryController;
+  late final TextEditingController _cityController;
 
   @override
   void initState() {
@@ -30,11 +35,21 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _fullNameController = TextEditingController(text: profileState.userProfile.fullName);
     _emailController = TextEditingController(text: profileState.userProfile.email);
     _phoneController = TextEditingController(text: profileState.userProfile.phoneWithCountryCode);
+    _nicknameController = TextEditingController(text: profileState.userProfile.nickname);
+    _bioController = TextEditingController(text: profileState.userProfile.bio);
+    _occupationController = TextEditingController(text: profileState.userProfile.occupation);
+    _countryController = TextEditingController(text: profileState.userProfile.country);
+    _cityController = TextEditingController(text: profileState.userProfile.city);
 
     // Listen to controller changes to update state
     _fullNameController.addListener(() => _updateFullName());
     _emailController.addListener(() => _updateEmail());
     _phoneController.addListener(() => _updatePhone());
+    _nicknameController.addListener(() => _updateNickname());
+    _bioController.addListener(() => _updateBio());
+    _occupationController.addListener(() => _updateOccupation());
+    _countryController.addListener(() => _updateCountry());
+    _cityController.addListener(() => _updateCity());
   }
 
   void _updateFullName() {
@@ -52,11 +67,41 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     profileController.updatePhone(_phoneController.text);
   }
 
+  void _updateNickname() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateNickname(_nicknameController.text);
+  }
+
+  void _updateBio() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateBio(_bioController.text);
+  }
+
+  void _updateOccupation() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateOccupation(_occupationController.text);
+  }
+
+  void _updateCountry() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateCountry(_countryController.text);
+  }
+
+  void _updateCity() {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    profileController.updateCity(_cityController.text);
+  }
+
   @override
   void dispose() {
     _fullNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _nicknameController.dispose();
+    _bioController.dispose();
+    _occupationController.dispose();
+    _countryController.dispose();
+    _cityController.dispose();
     super.dispose();
   }
 
@@ -155,6 +200,64 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   selectedGender: profileState.userProfile.gender,
                   onChanged: profileController.updateGender,
                   errorText: profileState.fieldErrors?['gender'],
+                ),
+                const SizedBox(height: 32),
+
+                // Extended Profile Section
+                Container(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    "Extended Profile",
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.primary,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                _ProfileField(
+                  controller: _nicknameController,
+                  label: 'Nickname',
+                  icon: Icons.alternate_email,
+                  errorText: profileState.fieldErrors?['nickname'],
+                  hint: 'Your preferred nickname',
+                  keyboardType: TextInputType.name,
+                ),
+                _ProfileField(
+                  controller: _bioController,
+                  label: 'Bio',
+                  icon: Icons.description,
+                  errorText: profileState.fieldErrors?['bio'],
+                  hint: 'Tell us about yourself (max 200 characters)',
+                  maxLines: 3,
+                  keyboardType: TextInputType.multiline,
+                ),
+                _ProfileField(
+                  controller: _occupationController,
+                  label: 'Occupation',
+                  icon: Icons.work,
+                  hint: 'Your job or profession',
+                  keyboardType: TextInputType.text,
+                ),
+                _ProfileField(
+                  controller: _countryController,
+                  label: 'Country',
+                  icon: Icons.language,
+                  hint: 'Your country',
+                  keyboardType: TextInputType.text,
+                ),
+                _ProfileField(
+                  controller: _cityController,
+                  label: 'City',
+                  icon: Icons.location_city,
+                  hint: 'Your city',
+                  keyboardType: TextInputType.text,
+                ),
+                _TimezoneDropdown(
+                  label: 'Timezone',
+                  icon: Icons.schedule,
+                  selectedTimezone: profileState.userProfile.timezone,
+                  onChanged: profileController.updateTimezone,
                 ),
                 const SizedBox(height: 40),
 
@@ -313,6 +416,7 @@ class _ProfileField extends StatelessWidget {
   final String? errorText;
   final String hint;
   final TextInputType keyboardType;
+  final int? maxLines;
 
   const _ProfileField({
     required this.controller,
@@ -321,6 +425,7 @@ class _ProfileField extends StatelessWidget {
     this.errorText,
     required this.hint,
     this.keyboardType = TextInputType.text,
+    this.maxLines,
   });
 
   @override
@@ -343,6 +448,7 @@ class _ProfileField extends StatelessWidget {
           fillColor: theme.colorScheme.surfaceContainerHighest,
         ),
         keyboardType: keyboardType,
+        maxLines: maxLines,
       ),
     );
   }
@@ -472,6 +578,76 @@ class _GenderDropdown extends StatelessWidget {
       case Gender.preferNotToSay:
         return 'Prefer not to say';
     }
+  }
+}
+
+class _TimezoneDropdown extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final String? selectedTimezone;
+  final Function(String?) onChanged;
+
+  const _TimezoneDropdown({
+    required this.label,
+    required this.icon,
+    this.selectedTimezone,
+    required this.onChanged,
+  });
+
+  static const List<String> timezones = [
+    'UTC-12:00',
+    'UTC-11:00',
+    'UTC-10:00',
+    'UTC-09:00',
+    'UTC-08:00',
+    'UTC-07:00',
+    'UTC-06:00',
+    'UTC-05:00',
+    'UTC-04:00',
+    'UTC-03:00',
+    'UTC-02:00',
+    'UTC-01:00',
+    'UTC+00:00',
+    'UTC+01:00',
+    'UTC+02:00',
+    'UTC+03:00',
+    'UTC+04:00',
+    'UTC+05:00',
+    'UTC+05:30',
+    'UTC+06:00',
+    'UTC+07:00',
+    'UTC+08:00',
+    'UTC+09:00',
+    'UTC+10:00',
+    'UTC+11:00',
+    'UTC+12:00',
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: DropdownButtonFormField<String>(
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          filled: true,
+          fillColor: theme.colorScheme.surfaceContainerHighest,
+        ),
+        value: selectedTimezone,
+        items: timezones.map((timezone) {
+          return DropdownMenuItem(
+            value: timezone,
+            child: Text(timezone),
+          );
+        }).toList(),
+        onChanged: onChanged,
+      ),
+    );
   }
 }
 
