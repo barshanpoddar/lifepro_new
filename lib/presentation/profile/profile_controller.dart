@@ -375,7 +375,7 @@ class ProfileController extends StateNotifier<ProfileState> {
           isSaving: false,
         );
       } else {
-        state = state.copyWith(isSaving: false, profileSaved: true);
+        state = state.copyWith(isSaving: false, profileSaved: true, showProfileOptions: true);
         Future.delayed(const Duration(seconds: 2), () {
           state = state.copyWith(profileSaved: false);
         });

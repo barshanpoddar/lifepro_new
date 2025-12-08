@@ -19,6 +19,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _fullNameController;
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
+  late TextEditingController _nicknameController;
+  late TextEditingController _bioController;
+  late TextEditingController _occupationController;
+  late TextEditingController _countryController;
+  late TextEditingController _cityController;
+  late TextEditingController _timezoneController;
 
   @override
   void initState() {
@@ -33,6 +39,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _phoneController = TextEditingController(
       text: profileState.userProfile.phoneWithCountryCode,
     );
+    _nicknameController = TextEditingController(
+      text: profileState.userProfile.nickname,
+    );
+    _bioController = TextEditingController(
+      text: profileState.userProfile.bio,
+    );
+    _occupationController = TextEditingController(
+      text: profileState.userProfile.occupation ?? '',
+    );
+    _countryController = TextEditingController(
+      text: profileState.userProfile.country ?? '',
+    );
+    _cityController = TextEditingController(
+      text: profileState.userProfile.city ?? '',
+    );
+    _timezoneController = TextEditingController(
+      text: profileState.userProfile.timezone ?? '',
+    );
   }
 
   @override
@@ -40,6 +64,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     _fullNameController.dispose();
     _emailController.dispose();
     _phoneController.dispose();
+    _nicknameController.dispose();
+    _bioController.dispose();
+    _occupationController.dispose();
+    _countryController.dispose();
+    _cityController.dispose();
+    _timezoneController.dispose();
     super.dispose();
   }
 
@@ -138,6 +168,50 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     onChanged: profileController.updateGender,
                     errorText: profileState.fieldErrors?['gender'],
                   ),
+                  _ProfileField(
+                    label: 'Nickname',
+                    icon: Icons.star,
+                    controller: _nicknameController,
+                    hint: 'Enter your nickname (optional)',
+                    onChanged: profileController.updateNickname,
+                  ),
+                  _ProfileField(
+                    label: 'Bio',
+                    icon: Icons.description,
+                    controller: _bioController,
+                    errorText: profileState.fieldErrors?['bio'],
+                    hint: 'Tell us about yourself (max 200 chars)',
+                    onChanged: profileController.updateBio,
+                    maxLines: 3,
+                  ),
+                  _ProfileField(
+                    label: 'Occupation',
+                    icon: Icons.work,
+                    controller: _occupationController,
+                    hint: 'Enter your occupation (optional)',
+                    onChanged: (value) => profileController.updateOccupation(value.isEmpty ? null : value),
+                  ),
+                  _ProfileField(
+                    label: 'Country',
+                    icon: Icons.flag,
+                    controller: _countryController,
+                    hint: 'Enter your country (optional)',
+                    onChanged: (value) => profileController.updateCountry(value.isEmpty ? null : value),
+                  ),
+                  _ProfileField(
+                    label: 'City',
+                    icon: Icons.location_city,
+                    controller: _cityController,
+                    hint: 'Enter your city (optional)',
+                    onChanged: (value) => profileController.updateCity(value.isEmpty ? null : value),
+                  ),
+                  _ProfileField(
+                    label: 'Timezone',
+                    icon: Icons.schedule,
+                    controller: _timezoneController,
+                    hint: 'Enter your timezone (e.g., UTC+5.5) (optional)',
+                    onChanged: (value) => profileController.updateTimezone(value.isEmpty ? null : value),
+                  ),
                   const SizedBox(height: 40),
 
                   // Save Button
@@ -159,6 +233,45 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                   ),
                   const SizedBox(height: 32),
+
+                  // Profile Options (shown after saving)
+                  if (profileState.showProfileOptions) ...[
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Profile Options",
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    _ProfileOptionTile(
+                      icon: Icons.person,
+                      title: 'Personal Details',
+                      subtitle: 'View and edit personal information',
+                      onTap: () => _navigateToPersonalDetails(context),
+                    ),
+                    _ProfileOptionTile(
+                      icon: Icons.group_add,
+                      title: 'Add Member',
+                      subtitle: 'Add family members or dependents',
+                      onTap: () => _navigateToAddMember(context),
+                    ),
+                    _ProfileOptionTile(
+                      icon: Icons.settings,
+                      title: 'Settings',
+                      subtitle: 'App settings and preferences',
+                      onTap: () => _navigateToSettings(context),
+                    ),
+                    _ProfileOptionTile(
+                      icon: Icons.logout,
+                      title: 'Login Options',
+                      subtitle: 'Logout or account management',
+                      onTap: () => _showLoginOptions(context),
+                    ),
+                  ],
                 ],
               ),
             ),
@@ -250,6 +363,98 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       },
     );
   }
+
+  void _navigateToPersonalDetails(BuildContext context) {
+    // For now, just scroll to top or show a dialog
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Personal Details - Feature Coming Soon')),
+    );
+  }
+
+  void _navigateToAddMember(BuildContext context) {
+    // For now, show a dialog to add member
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Add Member - Feature Coming Soon')),
+    );
+  }
+
+  void _navigateToSettings(BuildContext context) {
+    // Navigate to settings screen if exists
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Settings - Feature Coming Soon')),
+    );
+  }
+
+  void _showLoginOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.logout),
+                title: const Text('Logout'),
+                onTap: () {
+                  Navigator.pop(context);
+                  _showLogoutDialog(context);
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.lock),
+                title: const Text('Change Password'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Change Password - Feature Coming Soon')),
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete),
+                title: const Text('Delete Account'),
+                onTap: () {
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Delete Account - Feature Coming Soon')),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                // Implement logout logic here
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Logged out successfully')),
+                );
+              },
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _ProfilePictureSection extends StatelessWidget {
@@ -303,6 +508,7 @@ class _ProfileField extends StatefulWidget {
   final String hint;
   final Function(String) onChanged;
   final TextInputType keyboardType;
+  final int? maxLines;
 
   const _ProfileField({
     required this.label,
@@ -312,6 +518,7 @@ class _ProfileField extends StatefulWidget {
     required this.hint,
     required this.onChanged,
     this.keyboardType = TextInputType.text,
+    this.maxLines,
   });
 
   @override
@@ -337,6 +544,7 @@ class _ProfileFieldState extends State<_ProfileField> {
           fillColor: theme.colorScheme.surfaceContainerHighest,
         ),
         keyboardType: widget.keyboardType,
+        maxLines: widget.maxLines,
         onChanged: widget.onChanged,
       ),
     );
@@ -592,6 +800,38 @@ class _EmailVerificationDialog extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _ProfileOptionTile extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const _ProfileOptionTile({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: theme.colorScheme.primary),
+        title: Text(title),
+        subtitle: Text(subtitle),
+        trailing: Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey),
+        onTap: onTap,
       ),
     );
   }

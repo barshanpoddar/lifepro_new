@@ -25,7 +25,9 @@ mixin _$ProfileState {
   bool get showOtpDialog => throw _privateConstructorUsedError;
   String? get otpInput => throw _privateConstructorUsedError;
   bool get showEmailVerificationDialog => throw _privateConstructorUsedError;
-  bool get profileSaved => throw _privateConstructorUsedError;
+  bool get profileSaved =>
+      throw _privateConstructorUsedError; // to show success popup
+  bool get showProfileOptions => throw _privateConstructorUsedError;
 
   /// Create a copy of ProfileState
   /// with the given fields replaced by the non-null parameter values.
@@ -51,6 +53,7 @@ abstract class $ProfileStateCopyWith<$Res> {
     String? otpInput,
     bool showEmailVerificationDialog,
     bool profileSaved,
+    bool showProfileOptions,
   });
 
   $UserProfileCopyWith<$Res> get userProfile;
@@ -80,6 +83,7 @@ class _$ProfileStateCopyWithImpl<$Res, $Val extends ProfileState>
     Object? otpInput = freezed,
     Object? showEmailVerificationDialog = null,
     Object? profileSaved = null,
+    Object? showProfileOptions = null,
   }) {
     return _then(
       _value.copyWith(
@@ -119,6 +123,10 @@ class _$ProfileStateCopyWithImpl<$Res, $Val extends ProfileState>
                 ? _value.profileSaved
                 : profileSaved // ignore: cast_nullable_to_non_nullable
                       as bool,
+            showProfileOptions: null == showProfileOptions
+                ? _value.showProfileOptions
+                : showProfileOptions // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -154,6 +162,7 @@ abstract class _$$ProfileStateImplCopyWith<$Res>
     String? otpInput,
     bool showEmailVerificationDialog,
     bool profileSaved,
+    bool showProfileOptions,
   });
 
   @override
@@ -183,6 +192,7 @@ class __$$ProfileStateImplCopyWithImpl<$Res>
     Object? otpInput = freezed,
     Object? showEmailVerificationDialog = null,
     Object? profileSaved = null,
+    Object? showProfileOptions = null,
   }) {
     return _then(
       _$ProfileStateImpl(
@@ -222,6 +232,10 @@ class __$$ProfileStateImplCopyWithImpl<$Res>
             ? _value.profileSaved
             : profileSaved // ignore: cast_nullable_to_non_nullable
                   as bool,
+        showProfileOptions: null == showProfileOptions
+            ? _value.showProfileOptions
+            : showProfileOptions // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -240,6 +254,7 @@ class _$ProfileStateImpl implements _ProfileState {
     this.otpInput,
     this.showEmailVerificationDialog = false,
     this.profileSaved = false,
+    this.showProfileOptions = false,
   }) : _fieldErrors = fieldErrors;
 
   @override
@@ -274,10 +289,14 @@ class _$ProfileStateImpl implements _ProfileState {
   @override
   @JsonKey()
   final bool profileSaved;
+  // to show success popup
+  @override
+  @JsonKey()
+  final bool showProfileOptions;
 
   @override
   String toString() {
-    return 'ProfileState(userProfile: $userProfile, isLoading: $isLoading, isSaving: $isSaving, errorMessage: $errorMessage, fieldErrors: $fieldErrors, showOtpDialog: $showOtpDialog, otpInput: $otpInput, showEmailVerificationDialog: $showEmailVerificationDialog, profileSaved: $profileSaved)';
+    return 'ProfileState(userProfile: $userProfile, isLoading: $isLoading, isSaving: $isSaving, errorMessage: $errorMessage, fieldErrors: $fieldErrors, showOtpDialog: $showOtpDialog, otpInput: $otpInput, showEmailVerificationDialog: $showEmailVerificationDialog, profileSaved: $profileSaved, showProfileOptions: $showProfileOptions)';
   }
 
   @override
@@ -308,7 +327,9 @@ class _$ProfileStateImpl implements _ProfileState {
                 other.showEmailVerificationDialog ==
                     showEmailVerificationDialog) &&
             (identical(other.profileSaved, profileSaved) ||
-                other.profileSaved == profileSaved));
+                other.profileSaved == profileSaved) &&
+            (identical(other.showProfileOptions, showProfileOptions) ||
+                other.showProfileOptions == showProfileOptions));
   }
 
   @override
@@ -323,6 +344,7 @@ class _$ProfileStateImpl implements _ProfileState {
     otpInput,
     showEmailVerificationDialog,
     profileSaved,
+    showProfileOptions,
   );
 
   /// Create a copy of ProfileState
@@ -345,6 +367,7 @@ abstract class _ProfileState implements ProfileState {
     final String? otpInput,
     final bool showEmailVerificationDialog,
     final bool profileSaved,
+    final bool showProfileOptions,
   }) = _$ProfileStateImpl;
 
   @override
@@ -364,7 +387,9 @@ abstract class _ProfileState implements ProfileState {
   @override
   bool get showEmailVerificationDialog;
   @override
-  bool get profileSaved;
+  bool get profileSaved; // to show success popup
+  @override
+  bool get showProfileOptions;
 
   /// Create a copy of ProfileState
   /// with the given fields replaced by the non-null parameter values.

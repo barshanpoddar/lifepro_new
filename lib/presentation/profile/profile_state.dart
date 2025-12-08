@@ -15,5 +15,6 @@ class ProfileState with _$ProfileState {
     String? otpInput,
     @Default(false) bool showEmailVerificationDialog,
     @Default(false) bool profileSaved, // to show success popup
+    @Default(false) bool showProfileOptions, // to show profile options menu after saving
   }) = _ProfileState;
 }
