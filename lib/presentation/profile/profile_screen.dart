@@ -14,6 +14,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   late TextEditingController _emailController;
   late TextEditingController _phoneController;
 
+  bool _isEditing = false;
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +33,26 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.dispose();
   }
 
+  void _toggleEditMode() {
+    setState(() => _isEditing = true);
+  }
+
+  void _cancelEdit() {
+    // Reset form values from controller
+    final profileState = ref.read(profileControllerProvider);
+    _fullNameController.text = profileState.userProfile.fullName;
+    _emailController.text = profileState.userProfile.email;
+    _phoneController.text = profileState.userProfile.phoneNumber;
+
+    setState(() => _isEditing = false);
+  }
+
+  Future<void> _saveProfile() async {
+    final profileController = ref.read(profileControllerProvider.notifier);
+    await profileController.saveProfile();
+    setState(() => _isEditing = false);
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileState = ref.watch(profileControllerProvider);
@@ -41,6 +63,23 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final textTheme = theme.textTheme;
 
     return Scaffold(
+      appBar: AppBar(
+        title: Text(_isEditing ? 'Edit Profile' : 'Profile'),
+        elevation: 0,
+        backgroundColor: colorScheme.surface,
+        foregroundColor: colorScheme.onSurface,
+        actions: [
+          if (!_isEditing)
+            TextButton.icon(
+              onPressed: _toggleEditMode,
+              icon: const Icon(Icons.edit),
+              label: const Text('Edit'),
+              style: TextButton.styleFrom(
+                foregroundColor: colorScheme.primary,
+              ),
+            ),
+        ],
+      ),
       body: SafeArea(
         child: Stack(
           children: [
@@ -49,18 +88,71 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // Basic Details Section
+                  // Profile Icon
                   Container(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Basic Details",
-                      style: textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: colorScheme.primary,
-                      ),
+                    width: 80,
+                    height: 80,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primaryContainer,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Icon(
+                      Icons.person,
+                      size: 40,
+                      color: colorScheme.onPrimaryContainer,
                     ),
                   ),
+                  const SizedBox(height: 24),
+
+                  // Welcome Text
+                  if (!_isEditing)
+                    Column(
+                      children: [
+                        Text(
+                          'Welcome to LifeBalance AI',
+                          style: textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: colorScheme.onSurface,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Manage your profile information',
+                          style: textTheme.bodyMedium?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 32),
+                      ],
+                    ),
+
+                  // Basic Details Section
+                  if (_isEditing)
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Edit Basic Details",
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    )
+                  else
+                    Container(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Your Information",
+                        style: textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: colorScheme.primary,
+                        ),
+                      ),
+                    ),
                   const SizedBox(height: 16),
+
                   _ProfileField(
                     label: 'Full Name',
                     icon: Icons.person,
@@ -69,6 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     hint: 'Enter your full name',
                     onChanged: profileController.updateFullName,
                     keyboardType: TextInputType.name,
+                    readOnly: !_isEditing,
                   ),
                   _ProfileField(
                     label: 'Email',
@@ -78,6 +171,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     hint: 'Enter your email',
                     onChanged: profileController.updateEmail,
                     keyboardType: TextInputType.emailAddress,
+                    readOnly: !_isEditing,
                   ),
                   _ProfileField(
                     label: 'Phone Number',
@@ -87,27 +181,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     hint: 'Enter your phone number',
                     onChanged: profileController.updatePhone,
                     keyboardType: TextInputType.phone,
+                    readOnly: !_isEditing,
                   ),
-                  const SizedBox(height: 40),
 
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: profileController.isFormValid
-                          ? profileController.saveProfile
-                          : null,
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                  if (_isEditing) ...[
+                    const SizedBox(height: 40),
+
+                    // Action Buttons
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: _cancelEdit,
+                            style: OutlinedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text('Cancel'),
+                          ),
                         ),
-                      ),
-                      child: profileState.isSaving
-                          ? const CircularProgressIndicator()
-                          : const Text('Save Profile'),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: ElevatedButton(
+                            onPressed: profileController.isFormValid
+                                ? _saveProfile
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: profileState.isSaving
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                    ),
+                                  )
+                                : const Text('Save'),
+                          ),
+                        ),
+                      ],
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -159,6 +279,7 @@ class _ProfileField extends StatefulWidget {
   final String hint;
   final Function(String) onChanged;
   final TextInputType keyboardType;
+  final bool readOnly;
 
   const _ProfileField({
     required this.label,
@@ -168,6 +289,7 @@ class _ProfileField extends StatefulWidget {
     required this.hint,
     required this.onChanged,
     this.keyboardType = TextInputType.text,
+    this.readOnly = false,
   });
 
   @override
@@ -183,6 +305,7 @@ class _ProfileFieldState extends State<_ProfileField> {
       padding: const EdgeInsets.only(bottom: 16),
       child: TextField(
         controller: widget.controller,
+        readOnly: widget.readOnly,
         decoration: InputDecoration(
           labelText: widget.label,
           hintText: widget.hint,
@@ -190,7 +313,9 @@ class _ProfileFieldState extends State<_ProfileField> {
           prefixIcon: Icon(widget.icon),
           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
           filled: true,
-          fillColor: theme.colorScheme.surfaceContainerHighest,
+          fillColor: widget.readOnly
+              ? theme.colorScheme.surfaceContainerLowest
+              : theme.colorScheme.surfaceContainerHighest,
         ),
         keyboardType: widget.keyboardType,
         onChanged: widget.onChanged,

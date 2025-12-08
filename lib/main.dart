@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:lifepro_new/presentation/home/home_screen.dart';
+import 'package:lifepro_new/presentation/screens/login_screen.dart';
 import 'package:lifepro_new/presentation/providers/providers.dart';
 import 'package:lifepro_new/presentation/theme/app_theme.dart';
 
@@ -26,7 +27,14 @@ class MyApp extends ConsumerWidget {
       darkTheme: AppTheme.darkTheme,
       debugShowCheckedModeBanner: false,
       home: appInit.when(
-        data: (_) => const HomeScreen(),
+        data: (_) {
+          final authState = ref.watch(authStateProvider);
+          return authState.when(
+            data: (isLoggedIn) => isLoggedIn ? const HomeScreen() : const LoginScreen(),
+            loading: () => const Scaffold(body: Center(child: CircularProgressIndicator())),
+            error: (e, st) => Scaffold(body: Center(child: Text('Auth Error: $e'))),
+          );
+        },
         loading: () =>
             const Scaffold(body: Center(child: CircularProgressIndicator())),
         error: (e, st) => Scaffold(body: Center(child: Text('Error: $e'))),
