@@ -11,10 +11,6 @@ class ProfileState with _$ProfileState {
     @Default(false) bool isSaving,
     String? errorMessage,
     Map<String, String>? fieldErrors,
-    @Default(false) bool showOtpDialog,
-    String? otpInput,
-    @Default(false) bool showEmailVerificationDialog,
-    @Default(false) bool profileSaved, // to show success popup
-    @Default(false) bool showProfileOptions, // to show profile options menu after saving
+    @Default(false) bool profileSaved,
   }) = _ProfileState;
 }

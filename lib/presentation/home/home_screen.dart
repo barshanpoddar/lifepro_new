@@ -697,25 +697,14 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               const Text(
-                'This will send an emergency alert to all your contacts and emergency services.',
+                'This will send an emergency alert to emergency services.',
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 16),
-              if (profile.emergencyContacts.isNotEmpty) ...[
-                const Text(
-                  'Contacts to notify:',
-                  style: TextStyle(fontWeight: FontWeight.w600),
-                ),
-                const SizedBox(height: 8),
-                ...profile.emergencyContacts.map((contact) => Text('${contact.name} (${contact.relation})')),
-              ] else
-                const Text(
-                  'No emergency contacts configured. Please add contacts in your profile.',
-                  style: TextStyle(color: Colors.red),
-                ),
-              const SizedBox(height: 16),
-              if (profile.autoShareLocation)
-                const Text('Your current location will be included in the alert.'),
+              const Text(
+                'Emergency contacts have been removed from the profile.',
+                style: TextStyle(color: Colors.orange),
+              ),
             ],
           ),
           actions: [

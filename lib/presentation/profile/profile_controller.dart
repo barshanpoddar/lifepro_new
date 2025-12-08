@@ -1,15 +1,10 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:intl/intl.dart';
-import 'package:lifepro_new/domain/entities/emergency_contact.dart';
 import 'package:lifepro_new/domain/entities/user_profile.dart';
 import 'package:lifepro_new/presentation/profile/profile_state.dart';
-import 'package:path_provider/path_provider.dart';
 
 class ProfileController extends StateNotifier<ProfileState> {
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
@@ -35,31 +30,10 @@ class ProfileController extends StateNotifier<ProfileState> {
         final profile = UserProfile.fromJson(json.decode(profileJson));
         state = state.copyWith(userProfile: profile);
       } else {
-        // Default mock data if none saved
-        final mockProfile = UserProfile(
-          fullName: '',
-          email: '',
-          phoneWithCountryCode: '',
-          dob: null,
-          gender: null,
-          emailVerified: false,
-          phoneVerified: false,
-        );
-        state = state.copyWith(userProfile: mockProfile);
+        state = state.copyWith(userProfile: UserProfile());
       }
     } catch (e) {
-      // print('Error loading profile: $e');
-      // Fallback
-      final mockProfile = UserProfile(
-        fullName: '',
-        email: '',
-        phoneWithCountryCode: '',
-        dob: null,
-        gender: null,
-        emailVerified: false,
-        phoneVerified: false,
-      );
-      state = state.copyWith(userProfile: mockProfile);
+      state = state.copyWith(userProfile: UserProfile());
     }
   }
 
@@ -68,9 +42,7 @@ class ProfileController extends StateNotifier<ProfileState> {
     _fullNameTimer?.cancel();
     _fullNameTimer = Timer(const Duration(milliseconds: 500), () {
       if (_pendingFullName != null) {
-        final newProfile = state.userProfile.copyWith(
-          fullName: _pendingFullName!,
-        );
+        final newProfile = state.userProfile.copyWith(fullName: _pendingFullName!);
         state = state.copyWith(userProfile: newProfile);
         _validateField('fullName');
         _pendingFullName = null;
@@ -83,10 +55,7 @@ class ProfileController extends StateNotifier<ProfileState> {
     _emailTimer?.cancel();
     _emailTimer = Timer(const Duration(milliseconds: 500), () {
       if (_pendingEmail != null) {
-        final newProfile = state.userProfile.copyWith(
-          email: _pendingEmail!,
-          emailVerified: false,
-        );
+        final newProfile = state.userProfile.copyWith(email: _pendingEmail!);
         state = state.copyWith(userProfile: newProfile);
         _validateField('email');
         _pendingEmail = null;
@@ -99,126 +68,12 @@ class ProfileController extends StateNotifier<ProfileState> {
     _phoneTimer?.cancel();
     _phoneTimer = Timer(const Duration(milliseconds: 500), () {
       if (_pendingPhone != null) {
-        final newProfile = state.userProfile.copyWith(
-          phoneWithCountryCode: _pendingPhone!,
-          phoneVerified: false,
-        );
+        final newProfile = state.userProfile.copyWith(phoneNumber: _pendingPhone!);
         state = state.copyWith(userProfile: newProfile);
         _validateField('phone');
-        // Trigger OTP if valid phone
-        if (_isValidPhone(_pendingPhone!) && !newProfile.phoneVerified) {
-          state = state.copyWith(showOtpDialog: true);
-        }
         _pendingPhone = null;
       }
     });
-  }
-
-  void updateDob(DateTime dob) {
-    final now = DateTime.now();
-    if (dob.isAfter(now)) return;
-    final age =
-        now.year -
-        dob.year -
-        (now.month > dob.month || (now.month == dob.month && now.day >= dob.day)
-            ? 0
-            : 1);
-    if (age < 0) return;
-    final newProfile = state.userProfile.copyWith(dob: dob);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('dob');
-  }
-
-  void updateGender(Gender gender) {
-    final newProfile = state.userProfile.copyWith(gender: gender);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('gender');
-  }
-
-  void updateProfilePicture(String? profilePictureUrl) {
-    final newProfile = state.userProfile.copyWith(
-      profilePictureUrl: profilePictureUrl,
-    );
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void updateNickname(String nickname) {
-    final newProfile = state.userProfile.copyWith(nickname: nickname);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('nickname');
-  }
-
-  void updateBio(String bio) {
-    final newProfile = state.userProfile.copyWith(bio: bio);
-    state = state.copyWith(userProfile: newProfile);
-    _validateField('bio');
-  }
-
-  void updateOccupation(String? occupation) {
-    final newProfile = state.userProfile.copyWith(occupation: occupation);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void updateCountry(String? country) {
-    final newProfile = state.userProfile.copyWith(country: country);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void updateCity(String? city) {
-    final newProfile = state.userProfile.copyWith(city: city);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void updateTimezone(String? timezone) {
-    final newProfile = state.userProfile.copyWith(timezone: timezone);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void addEmergencyContact(String name, String phone, String relation) {
-    final newContact = EmergencyContact(name: name, phone: phone, relation: relation);
-    final newContacts = [...state.userProfile.emergencyContacts, newContact];
-    final newProfile = state.userProfile.copyWith(emergencyContacts: newContacts);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  void removeEmergencyContact(int index) {
-    final newContacts = List<EmergencyContact>.from(state.userProfile.emergencyContacts);
-    if (index >= 0 && index < newContacts.length) {
-      newContacts.removeAt(index);
-      final newProfile = state.userProfile.copyWith(emergencyContacts: newContacts);
-      state = state.copyWith(userProfile: newProfile);
-    }
-  }
-
-  void updateAutoShareLocation(bool value) {
-    final newProfile = state.userProfile.copyWith(autoShareLocation: value);
-    state = state.copyWith(userProfile: newProfile);
-  }
-
-  Future<void> pickProfilePicture(ImageSource source) async {
-    try {
-      final picker = ImagePicker();
-      final pickedFile = await picker.pickImage(
-        source: source,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 80,
-      );
-
-      if (pickedFile != null) {
-        // For now, we'll save the file path locally
-        // In production, you might want to upload to cloud storage
-        final directory = await getApplicationDocumentsDirectory();
-        final fileName = 'profile_${DateTime.now().millisecondsSinceEpoch}.jpg';
-        final savedImage = await File(
-          pickedFile.path,
-        ).copy('${directory.path}/$fileName');
-
-        updateProfilePicture(savedImage.path);
-      }
-    } catch (e) {
-      state = state.copyWith(errorMessage: 'Failed to pick image: $e');
-    }
   }
 
   void _validateField(String field) {
@@ -227,17 +82,10 @@ class ProfileController extends StateNotifier<ProfileState> {
       case 'fullName':
         if (state.userProfile.fullName.isEmpty) {
           errors['fullName'] = 'Please enter your full name.';
-        } else if (!RegExp(
-          r'^[a-zA-Z\s]+$',
-        ).hasMatch(state.userProfile.fullName)) {
+        } else if (!RegExp(r'^[a-zA-Z\s]+$').hasMatch(state.userProfile.fullName)) {
           errors['fullName'] = 'Full name must not include special characters.';
-        } else if (state.userProfile.fullName
-                .split(' ')
-                .where((w) => w.isNotEmpty)
-                .length <
-            2) {
-          errors['fullName'] =
-              'Please enter full name with at least first and last name.';
+        } else if (state.userProfile.fullName.split(' ').where((w) => w.isNotEmpty).length < 2) {
+          errors['fullName'] = 'Please enter full name with at least first and last name.';
         } else {
           errors.remove('fullName');
         }
@@ -245,104 +93,28 @@ class ProfileController extends StateNotifier<ProfileState> {
       case 'email':
         if (state.userProfile.email.isEmpty) {
           errors['email'] = 'Please enter your email.';
-        } else if (!RegExp(
-          r'^[^@]+@[^@]+\.[^@]+',
-        ).hasMatch(state.userProfile.email)) {
+        } else if (!RegExp(r'^[^@]+@[^@]+\.[^@]+$').hasMatch(state.userProfile.email)) {
           errors['email'] = 'Please enter a valid email address.';
         } else {
           errors.remove('email');
         }
         break;
       case 'phone':
-        if (state.userProfile.phoneWithCountryCode.isEmpty) {
-          errors['phone'] = 'Please enter your phone number with country code.';
-        } else if (!RegExp(
-          r'^\+[0-9]{1,4}\s[0-9]{6,14}$',
-        ).hasMatch(state.userProfile.phoneWithCountryCode)) {
-          errors['phone'] =
-              'Please enter a valid phone number with country code (e.g., +91 9876543210).';
+        if (state.userProfile.phoneNumber.isEmpty) {
+          errors['phone'] = 'Please enter your phone number.';
         } else {
           errors.remove('phone');
-        }
-        break;
-      case 'dob':
-        if (state.userProfile.dob == null) {
-          errors['dob'] = 'Please select your date of birth.';
-        } else {
-          final age = _calculateAge(state.userProfile.dob!);
-          if (age <= 0) {
-            errors['dob'] = 'Invalid date of birth.';
-          } else {
-            errors.remove('dob');
-          }
-        }
-        break;
-      case 'gender':
-        if (state.userProfile.gender == null) {
-          errors['gender'] = 'Please select your gender.';
-        } else {
-          errors.remove('gender');
-        }
-        break;
-      case 'nickname':
-        // Optional field, no validation required
-        break;
-      case 'bio':
-        if (state.userProfile.bio.length > 200) {
-          errors['bio'] = 'Bio must be less than 200 characters.';
-        } else {
-          errors.remove('bio');
         }
         break;
     }
     state = state.copyWith(fieldErrors: errors);
   }
 
-  bool _isValidPhone(String phone) {
-    return RegExp(r'^\+[0-9]{1,4}\s[0-9]{6,14}$').hasMatch(phone);
-  }
-
-  int _calculateAge(DateTime dob) {
-    final now = DateTime.now();
-    int age = now.year - dob.year;
-    if (now.month < dob.month ||
-        (now.month == dob.month && now.day < dob.day)) {
-      age--;
-    }
-    return age;
-  }
-
   bool get isFormValid {
     return (state.fieldErrors?.isEmpty ?? true) &&
         state.userProfile.fullName.isNotEmpty &&
         state.userProfile.email.isNotEmpty &&
-        state.userProfile.phoneWithCountryCode.isNotEmpty &&
-        state.userProfile.dob != null &&
-        state.userProfile.gender != null;
-  }
-
-  void verifyOtp(String otp) {
-    // Mock OTP verification
-    if (otp == '123456') {
-      // dummy
-      final newProfile = state.userProfile.copyWith(phoneVerified: true);
-      state = state.copyWith(
-        userProfile: newProfile,
-        showOtpDialog: false,
-        otpInput: null,
-      );
-    } else {
-      state = state.copyWith(errorMessage: 'Invalid OTP. Try 123456 for demo.');
-    }
-  }
-
-  void verifyEmail() {
-    // Mock email verification
-    final newProfile = state.userProfile.copyWith(emailVerified: true);
-    state = state.copyWith(
-      userProfile: newProfile,
-      showEmailVerificationDialog: false,
-    );
+        state.userProfile.phoneNumber.isNotEmpty;
   }
 
   Future<void> saveProfile() async {
@@ -354,9 +126,7 @@ class ProfileController extends StateNotifier<ProfileState> {
       final sanitizedProfile = state.userProfile.copyWith(
         fullName: _sanitizeText(state.userProfile.fullName),
         email: _sanitizeEmail(state.userProfile.email),
-        phoneWithCountryCode: _sanitizePhone(
-          state.userProfile.phoneWithCountryCode,
-        ),
+        phoneNumber: _sanitizePhone(state.userProfile.phoneNumber),
       );
 
       // Save to secure storage
@@ -365,64 +135,33 @@ class ProfileController extends StateNotifier<ProfileState> {
         value: json.encode(sanitizedProfile.toJson()),
       );
 
-      // Update state with sanitized profile
-      state = state.copyWith(userProfile: sanitizedProfile);
-
-      // Show email verification if not verified
-      if (!sanitizedProfile.emailVerified) {
-        state = state.copyWith(
-          showEmailVerificationDialog: true,
-          isSaving: false,
-        );
-      } else {
-        state = state.copyWith(isSaving: false, profileSaved: true, showProfileOptions: true);
-        Future.delayed(const Duration(seconds: 2), () {
-          state = state.copyWith(profileSaved: false);
-        });
-      }
+      state = state.copyWith(
+        userProfile: sanitizedProfile,
+        isSaving: false,
+        profileSaved: true,
+      );
+      Future.delayed(const Duration(seconds: 2), () {
+        state = state.copyWith(profileSaved: false);
+      });
     } catch (e) {
       state = state.copyWith(isSaving: false, errorMessage: e.toString());
     }
   }
 
   String _sanitizeText(String text) {
-    // Allow only letters and spaces
     return text.replaceAll(RegExp(r'[^a-zA-Z\s]'), '').trim();
   }
 
   String _sanitizeEmail(String email) {
-    // Basic sanitize, trim and lowercase
     return email.trim().toLowerCase();
   }
 
   String _sanitizePhone(String phone) {
-    // Allow only + and numbers and spaces
-    return phone.replaceAll(RegExp(r'[^\+\d\s]'), '').trim();
-  }
-
-  void closeOtpDialog() {
-    state = state.copyWith(showOtpDialog: false, otpInput: null);
-  }
-
-  void closeEmailDialog() {
-    state = state.copyWith(showEmailVerificationDialog: false);
+    return phone.replaceAll(RegExp(r'[^\d\s]'), '').trim();
   }
 
   void dismissSuccess() {
     state = state.copyWith(profileSaved: false);
-  }
-
-  // Calculate age for display
-  String get ageDisplay {
-    if (state.userProfile.dob == null) return '';
-    final age = _calculateAge(state.userProfile.dob!);
-    return 'Age: $age years';
-  }
-
-  // Format dob for display
-  String get dobFormatted {
-    if (state.userProfile.dob == null) return '';
-    return DateFormat('yyyy-MM-dd').format(state.userProfile.dob!);
   }
 
   @override
